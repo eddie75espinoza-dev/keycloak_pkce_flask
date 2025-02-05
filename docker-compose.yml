@@ -1,0 +1,38 @@
+version: '3.8'
+
+networks:
+  keybridge_net:
+    name: keybridge_net
+    driver: bridge
+
+services:
+  backend:
+    image: keybridge:${DOCKER_TAG:-latest}
+    build: ./backend
+    container_name: keybridge
+    restart: always
+    ports:
+      - "${PORT}:5000"
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: > 
+      bash -c "if [ '${ENVIRONMENT}' = 'production' ]; then \
+        gunicorn \
+        --timeout 120 \
+        --workers 4 \
+        --bind '${HOST}:5000' \
+        --access-logfile './logs/gunicorn-access.log' \
+        --error-logfile './logs/gunicorn-error.log' \
+        'app:app'; \
+      else \
+        flask run --debug -p 5000 --host=${HOST}; \
+      fi"
+    networks:
+      - keybridge_net
+
+volumes:
+  backend:
