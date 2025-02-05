@@ -1,0 +1,7 @@
+Flask
+loguru
+gunicorn
+pytest
+python-dotenv
+requests
+python-keycloak
